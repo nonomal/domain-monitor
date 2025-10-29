@@ -75,7 +75,12 @@ class SettingsController extends Controller
             'isolationSettings' => $isolationSettings,
             'notificationPresets' => $notificationPresets,
             'checkIntervalPresets' => $checkIntervalPresets,
-            'title' => 'Settings'
+            'timezones' => timezone_identifiers_list(),
+            'cron_path' => realpath(PATH_ROOT . 'cron/check_domains.php'),
+            'title' => 'Settings',
+            'pageTitle' => 'System Settings',
+            'pageDescription' => 'Configure application, email, and monitoring settings',
+            'pageIcon' => 'fas fa-cog'
         ]);
     }
 

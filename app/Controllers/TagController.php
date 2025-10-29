@@ -54,7 +54,11 @@ class TagController extends Controller
             'pagination' => $result['pagination'],
             'filters' => $filters,
             'availableColors' => $availableColors,
-            'isolationMode' => $isolationMode
+            'isolationMode' => $isolationMode,
+            'title' => 'Tag Management',
+            'pageTitle' => 'Tag Management',
+            'pageDescription' => 'Manage your domain tags, colors, and organization',
+            'pageIcon' => 'fas fa-tags'
         ]);
     }
 
@@ -319,7 +323,11 @@ class TagController extends Controller
             'tag' => $tag,
             'domains' => $paginatedDomains,
             'filters' => $filters,
-            'pagination' => $pagination
+            'pagination' => $pagination,
+            'title' => 'Tag: ' . $tag['name'],
+            'pageTitle' => 'Tag: ' . $tag['name'],
+            'pageDescription' => 'View all domains that have this tag assigned',
+            'pageIcon' => 'fas fa-tag'
         ]);
     }
 

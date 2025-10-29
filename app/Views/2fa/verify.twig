@@ -1,8 +1,6 @@
 {% extends 'auth/base-auth.twig' %}
 
-{% set title = '2FA Verification' %}
-
-{% block title %}2FA Verification{% endblock %}
+{% block title %}{{ title|default('2FA Verification') }}{% endblock %}
 
 {% block content %}
 <div class="text-center mb-6">

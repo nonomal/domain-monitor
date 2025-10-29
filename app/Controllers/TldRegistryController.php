@@ -50,7 +50,10 @@ class TldRegistryController extends Controller
                 'sort' => $sort,
                 'order' => $order
             ],
-            'title' => 'TLD Registry'
+            'title' => 'TLD Registry',
+            'pageTitle' => 'TLD Registry',
+            'pageDescription' => 'Manage Top-Level Domain registry information',
+            'pageIcon' => 'fas fa-database'
         ]);
     }
 
@@ -70,7 +73,10 @@ class TldRegistryController extends Controller
 
         $this->view('tld-registry/view', [
             'tld' => $tld,
-            'title' => 'TLD: ' . $tld['tld']
+            'title' => 'TLD: ' . $tld['tld'],
+            'pageTitle' => 'TLD Details',
+            'pageDescription' => htmlspecialchars($tld['tld']),
+            'pageIcon' => 'fas fa-globe'
         ]);
     }
 
@@ -337,7 +343,10 @@ class TldRegistryController extends Controller
         $this->view('tld-registry/import-progress', [
             'log_id' => $logId,
             'import_type' => $importType,
-            'title' => $titles[$importType] ?? 'Import Progress'
+            'title' => $titles[$importType] ?? 'Import Progress',
+            'pageTitle' => $titles[$importType] ?? 'Import Progress',
+            'pageDescription' => 'Real-time progress tracking for TLD registry imports',
+            'pageIcon' => 'fas fa-tasks'
         ]);
     }
 
@@ -585,7 +594,10 @@ class TldRegistryController extends Controller
             'imports' => $result['logs'],
             'pagination' => $result['pagination'],
             'importStats' => $importStats,
-            'title' => 'TLD Import Logs'
+            'title' => 'TLD Import Logs',
+            'pageTitle' => 'TLD Import Logs',
+            'pageDescription' => 'History of TLD registry import operations',
+            'pageIcon' => 'fas fa-history'
         ]);
     }
 

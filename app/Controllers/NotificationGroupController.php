@@ -57,14 +57,20 @@ class NotificationGroupController extends Controller
         $this->view('groups/index', [
             'groups' => $groups,
             'users' => $users,
-            'title' => 'Notification Groups'
+            'title' => 'Notification Groups',
+            'pageTitle' => 'Notification Groups',
+            'pageDescription' => 'Manage notification channels and assignments',
+            'pageIcon' => 'fas fa-bell'
         ]);
     }
 
     public function create()
     {
         $this->view('groups/create', [
-            'title' => 'Create Notification Group'
+            'title' => 'Create Notification Group',
+            'pageTitle' => 'Create Notification Group',
+            'pageDescription' => 'Set up a new notification group',
+            'pageIcon' => 'fas fa-plus-circle'
         ]);
     }
 
@@ -154,7 +160,10 @@ class NotificationGroupController extends Controller
 
         $this->view('groups/edit', [
             'group' => $group,
-            'title' => 'Edit Group: ' . $group['name']
+            'title' => 'Edit Group: ' . $group['name'],
+            'pageTitle' => 'Edit Notification Group',
+            'pageDescription' => htmlspecialchars($group['name']),
+            'pageIcon' => 'fas fa-edit'
         ]);
     }
 

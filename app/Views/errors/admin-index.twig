@@ -1,10 +1,5 @@
 {% extends 'layout/base.twig' %}
 
-{% set title = 'Error Logs' %}
-{% set pageTitle = 'Error Logs' %}
-{% set pageDescription = 'Monitor and manage application errors' %}
-{% set pageIcon = 'fas fa-bug' %}
-
 {% block content %}
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -265,8 +260,8 @@
             </a>
         {% endif %}
         {% set range = 2 %}
-        {% set start = [1, currentPage - range]|max %}
-        {% set end = [totalPages, currentPage + range]|min %}
+        {% set start = currentPage - range < 1 ? 1 : currentPage - range %}
+        {% set end = currentPage + range > totalPages ? totalPages : currentPage + range %}
         {% if start > 1 %}
             <a href="{{ pagination_url(1, filters, pagination.per_page) }}" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">1</a>
             {% if start > 2 %}<span class="px-2 text-gray-500">...</span>{% endif %}

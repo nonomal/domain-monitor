@@ -110,7 +110,10 @@ class DomainController extends Controller
                 'order' => $sortOrder
             ],
             'pagination' => $result['pagination'],
-            'title' => 'Domains'
+            'title' => 'Domains',
+            'pageTitle' => 'Domain Management',
+            'pageDescription' => 'Monitor and manage your domain portfolio',
+            'pageIcon' => 'fas fa-globe'
         ]);
     }
 
@@ -138,7 +141,10 @@ class DomainController extends Controller
         $this->view('domains/create', [
             'groups' => $groups,
             'availableTags' => $availableTags,
-            'title' => 'Add Domain'
+            'title' => 'Add Domain',
+            'pageTitle' => 'Add New Domain',
+            'pageDescription' => 'Register a new domain for monitoring',
+            'pageIcon' => 'fas fa-plus-circle'
         ]);
     }
 
@@ -302,7 +308,10 @@ class DomainController extends Controller
             'groups' => $groups,
             'availableTags' => $availableTags,
             'referrer' => $referrer,
-            'title' => 'Edit Domain'
+            'title' => 'Edit Domain',
+            'pageTitle' => 'Edit Domain',
+            'pageDescription' => htmlspecialchars($domain['domain_name']),
+            'pageIcon' => 'fas fa-edit'
         ]);
     }
 
@@ -567,7 +576,10 @@ class DomainController extends Controller
             'domain' => $formattedDomain,
             'logs' => $logs,
             'availableTags' => $availableTags,
-            'title' => $domain['domain_name']
+            'title' => $domain['domain_name'],
+            'pageTitle' => htmlspecialchars($domain['domain_name']),
+            'pageDescription' => 'Domain details, WHOIS data, and notification logs',
+            'pageIcon' => 'fas fa-globe'
         ]);
     }
 
@@ -596,7 +608,10 @@ class DomainController extends Controller
             $this->view('domains/bulk-add', [
                 'groups' => $groups,
                 'availableTags' => $availableTags,
-                'title' => 'Bulk Add Domains'
+                'title' => 'Bulk Add Domains',
+                'pageTitle' => 'Bulk Add Domains',
+                'pageDescription' => 'Add multiple domains at once for monitoring',
+                'pageIcon' => 'fas fa-layer-group'
             ]);
             return;
         }

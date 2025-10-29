@@ -1,10 +1,5 @@
 {% extends 'layout/base.twig' %}
 
-{% set title = 'User Management' %}
-{% set pageTitle = 'User Management' %}
-{% set pageDescription = 'Manage system users and permissions' %}
-{% set pageIcon = 'fas fa-users' %}
-
 {% block content %}
 <div class="mb-4 flex justify-end">
     <a href="/users/create" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary-dark transition-colors font-medium">
@@ -157,13 +152,11 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
-                            {% set avatar = user|default({}) %}
-                            {% set avatar = attribute(_context, 'user_avatar') and user.id == session.user_id ? user_avatar : \App\Helpers\AvatarHelper::getAvatar(user, 40) %}
                             <div class="flex-shrink-0 h-10 w-10 rounded-lg overflow-hidden bg-primary bg-opacity-10 flex items-center justify-center">
-                                {% if avatar.type in ['uploaded','gravatar'] %}
-                                <img src="{{ avatar.url }}" alt="{{ avatar.alt }}" class="w-full h-full object-cover" loading="lazy">
+                                {% if user.avatar.type in ['uploaded','gravatar'] %}
+                                <img src="{{ user.avatar.url }}" alt="{{ user.avatar.alt }}" class="w-full h-full object-cover" loading="lazy">
                                 {% else %}
-                                <span class="text-primary font-semibold text-sm">{{ avatar.initials }}</span>
+                                <span class="text-primary font-semibold text-sm">{{ user.avatar.initials }}</span>
                                 {% endif %}
                             </div>
                             <div class="ml-4">
@@ -265,8 +258,8 @@
             </a>
         {% endif %}
         {% set range = 2 %}
-        {% set start = [1, currentPage - range]|max %}
-        {% set end = [totalPages, currentPage + range]|min %}
+        {% set start = currentPage - range < 1 ? 1 : currentPage - range %}
+        {% set end = currentPage + range > totalPages ? totalPages : currentPage + range %}
         {% if start > 1 %}
             <a href="{{ pagination_url(1, filters, pagination.per_page) }}" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">1</a>
             {% if start > 2 %}

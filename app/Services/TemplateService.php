@@ -40,6 +40,20 @@ class TemplateService
             return function_exists('csrf_token') ? csrf_token() : '';
         }));
 
+        // User role helpers (use Core\Auth methods)
+        $twig->addFunction(new TwigFunction('is_admin', function (): bool {
+            return \Core\Auth::isAdmin();
+        }));
+
+        $twig->addFunction(new TwigFunction('is_logged_in', function (): bool {
+            return \Core\Auth::check();
+        }));
+
+        // Domain helpers
+        $twig->addFunction(new TwigFunction('format_status_text', function (string $status): string {
+            return \App\Helpers\DomainHelper::formatStatusText($status);
+        }));
+
         // Map helpers as functions
         $twig->addFunction(new TwigFunction('sort_url', function (string $column, string $currentSort, string $currentOrder, array $filters = []): string {
             return \App\Helpers\ViewHelper::sortUrl($column, $currentSort, $currentOrder, $filters);
@@ -49,8 +63,35 @@ class TemplateService
             return \App\Helpers\ViewHelper::sortIcon($column, $currentSort, $currentOrder);
         }, ['is_safe' => ['html']]));
 
-        $twig->addFunction(new TwigFunction('pagination_url', function (int $page, array $filters, int $perPage): string {
-            return \App\Helpers\ViewHelper::paginationUrl($page, $filters, $perPage);
+        $twig->addFunction(new TwigFunction('pagination_url', function (int $page, string $status = '', string $type = ''): string {
+            $params = $_GET;
+            $params['page'] = $page;
+            if ($status) $params['status'] = $status;
+            if ($type) $params['type'] = $type;
+            $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+            return $currentPath . '?' . http_build_query($params);
+        }));
+
+        $twig->addFunction(new TwigFunction('tag_pagination_url', function (int $page, array $filters, int $perPage): string {
+            $params = $filters;
+            $params['page'] = $page;
+            $params['per_page'] = $perPage;
+            return '/tags?' . http_build_query($params);
+        }));
+
+        $twig->addFunction(new TwigFunction('tag_view_pagination_url', function (int $page, array $filters, int $perPage, int $tagId): string {
+            $params = $filters;
+            $params['page'] = $page;
+            $params['per_page'] = $perPage;
+            return '/tags/' . $tagId . '?' . http_build_query($params);
+        }));
+
+        $twig->addFunction(new TwigFunction('tag_view_sort_url', function (string $column, string $currentSort, string $currentOrder, int $tagId): string {
+            $newOrder = ($currentSort === $column && $currentOrder === 'asc') ? 'desc' : 'asc';
+            $params = $_GET;
+            $params['sort'] = $column;
+            $params['order'] = $newOrder;
+            return '/tags/' . $tagId . '?' . http_build_query($params);
         }));
 
         $twig->addFunction(new TwigFunction('status_badge', function (string $status): string {
@@ -65,6 +106,10 @@ class TemplateService
             return \App\Helpers\ViewHelper::alert($type, $message);
         }, ['is_safe' => ['html']]));
 
+        $twig->addFunction(new TwigFunction('http_build_query', function (array $data): string {
+            return http_build_query($data);
+        }));
+
         // Filters
         $twig->addFilter(new TwigFilter('truncate', function (string $text, int $length = 50, string $suffix = '...'): string {
             return \App\Helpers\ViewHelper::truncate($text, $length, $suffix);
@@ -72,6 +117,17 @@ class TemplateService
 
         $twig->addFilter(new TwigFilter('bytes', function (int $bytes, int $precision = 2): string {
             return \App\Helpers\ViewHelper::formatBytes($bytes, $precision);
+        }));
+
+        $twig->addFilter(new TwigFilter('unique', function (array $array): array {
+            return array_values(array_unique($array));
+        }));
+
+        $twig->addFilter(new TwigFilter('json_decode', function (?string $json): mixed {
+            if (empty($json)) {
+                return null;
+            }
+            return json_decode($json, true);
         }));
 
         self::$twig = $twig;
@@ -130,13 +186,28 @@ class TemplateService
                 }
             }
 
-            // Get session data for flash messages
-            $globalData['session'] = array_merge($globalData['session'] ?? [], [
-                'error' => $_SESSION['error'] ?? null,
-                'success' => $_SESSION['success'] ?? null,
-                'warning' => $_SESSION['warning'] ?? null,
-                'info' => $_SESSION['info'] ?? null
-            ]);
+            // Get session data for flash messages and clear them (flash messages are one-time use)
+            $flashMessages = [];
+            
+            // Only include flash messages that actually exist
+            if (isset($_SESSION['error'])) {
+                $flashMessages['error'] = $_SESSION['error'];
+                unset($_SESSION['error']);
+            }
+            if (isset($_SESSION['success'])) {
+                $flashMessages['success'] = $_SESSION['success'];
+                unset($_SESSION['success']);
+            }
+            if (isset($_SESSION['warning'])) {
+                $flashMessages['warning'] = $_SESSION['warning'];
+                unset($_SESSION['warning']);
+            }
+            if (isset($_SESSION['info'])) {
+                $flashMessages['info'] = $_SESSION['info'];
+                unset($_SESSION['info']);
+            }
+            
+            $globalData['session'] = array_merge($globalData['session'] ?? [], $flashMessages);
 
         } catch (\Exception $e) {
             // Fallback defaults if database is not available

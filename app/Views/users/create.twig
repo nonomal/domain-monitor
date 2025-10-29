@@ -1,10 +1,5 @@
 {% extends 'layout/base.twig' %}
 
-{% set title = 'Create User' %}
-{% set pageTitle = 'Create User' %}
-{% set pageDescription = 'Add a new user to the system' %}
-{% set pageIcon = 'fas fa-user-plus' %}
-
 {% block content %}
 <form method="POST" action="/users/store" class="max-w-2xl">
     {{ csrf_field()|raw }}

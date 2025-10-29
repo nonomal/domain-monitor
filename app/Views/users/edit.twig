@@ -1,10 +1,5 @@
 {% extends 'layout/base.twig' %}
 
-{% set title = 'Edit User' %}
-{% set pageTitle = 'Edit User' %}
-{% set pageDescription = 'Update user information and permissions' %}
-{% set pageIcon = 'fas fa-user-edit' %}
-
 {% block content %}
 <form method="POST" action="/users/{{ user.id }}/update" class="max-w-2xl">
     {{ csrf_field()|raw }}

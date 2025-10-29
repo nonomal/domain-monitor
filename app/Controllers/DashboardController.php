@@ -64,7 +64,10 @@ class DashboardController extends Controller
             'recentLogs' => $recentLogs,
             'groups' => $groups,
             'systemStatus' => $systemStatus,
-            'title' => 'Dashboard'
+            'title' => 'Dashboard',
+            'pageTitle' => 'Dashboard',
+            'pageDescription' => 'Overview of your domain portfolio and recent activity',
+            'pageIcon' => 'fas fa-tachometer-alt'
         ]);
     }
 

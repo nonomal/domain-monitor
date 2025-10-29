@@ -1,10 +1,5 @@
 {% extends 'layout/base.twig' %}
 
-{% set title = 'Error Details' %}
-{% set pageTitle = 'Error Details' %}
-{% set pageDescription = 'Detailed information about this error' %}
-{% set pageIcon = 'fas fa-bug' %}
-
 {% block content %}
 {% set isResolved = error.is_resolved %}
 {% set errorTypeShort = error.error_type|split('\\')|last %}

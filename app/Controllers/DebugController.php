@@ -17,7 +17,10 @@ class DebugController extends Controller
         if (empty($domain)) {
             $this->view('debug/whois', [
                 'domain' => '',
-                'title' => 'WHOIS Debug Tool'
+                'title' => 'WHOIS Debug Tool',
+                'pageTitle' => 'WHOIS Debug Tool',
+                'pageDescription' => 'Test and debug WHOIS data extraction',
+                'pageIcon' => 'fas fa-search'
             ]);
             return;
         }
@@ -398,7 +401,10 @@ class DebugController extends Controller
             'response' => $response,
             'parsedData' => $parsedData,
             'info' => $info,
-            'title' => 'WHOIS Debug - ' . $domain
+            'title' => 'WHOIS Debug - ' . $domain,
+            'pageTitle' => 'WHOIS Debug Tool',
+            'pageDescription' => 'Analyzing: ' . htmlspecialchars($domain),
+            'pageIcon' => 'fas fa-search'
         ]);
     }
 }

@@ -50,9 +50,18 @@ class UserController extends Controller
         // Get filtered users
         $users = $this->userModel->getFiltered($filters, $sort, strtoupper($order), $perPage, $offset);
         
+        // Add avatar data to each user
+        foreach ($users as &$user) {
+            $user['avatar'] = \App\Helpers\AvatarHelper::getAvatar($user, 40);
+        }
+        unset($user); // Break reference
+        
         $this->view('users/index', [
             'users' => $users,
             'title' => 'User Management',
+            'pageTitle' => 'User Management',
+            'pageDescription' => 'Manage system users and permissions',
+            'pageIcon' => 'fas fa-users',
             'filters' => [
                 'search' => $search,
                 'role' => $roleFilter,
@@ -77,7 +86,10 @@ class UserController extends Controller
     public function create()
     {
         $this->view('users/create', [
-            'title' => 'Create User'
+            'title' => 'Create User',
+            'pageTitle' => 'Create New User',
+            'pageDescription' => 'Add a new user to the system',
+            'pageIcon' => 'fas fa-user-plus'
         ]);
     }
 
@@ -207,7 +219,10 @@ class UserController extends Controller
 
         $this->view('users/edit', [
             'user' => $user,
-            'title' => 'Edit User'
+            'title' => 'Edit User',
+            'pageTitle' => 'Edit User',
+            'pageDescription' => htmlspecialchars($user['username']),
+            'pageIcon' => 'fas fa-user-edit'
         ]);
     }
 

@@ -54,7 +54,13 @@ class ErrorLogController extends Controller
             'showing_to' => min($offset + $perPage, $totalErrors)
         ];
 
-        $this->view('errors/admin-index', compact('errors', 'errorStats', 'filters', 'pagination'));
+        $data = compact('errors', 'errorStats', 'filters', 'pagination');
+        $data['title'] = 'Error Logs';
+        $data['pageTitle'] = 'Error Logs';
+        $data['pageDescription'] = 'System error tracking and monitoring';
+        $data['pageIcon'] = 'fas fa-exclamation-triangle';
+        
+        $this->view('errors/admin-index', $data);
     }
 
     /**
@@ -81,7 +87,13 @@ class ErrorLogController extends Controller
         $error['request_data'] = json_decode($error['request_data'], true) ?? [];
         $error['session_data'] = json_decode($error['session_data'], true) ?? [];
 
-        $this->view('errors/admin-detail', compact('error', 'errorOccurrences'));
+        $data = compact('error', 'errorOccurrences');
+        $data['title'] = 'Error Details';
+        $data['pageTitle'] = 'Error Details';
+        $data['pageDescription'] = htmlspecialchars($error['error_type'] ?? 'Error information');
+        $data['pageIcon'] = 'fas fa-bug';
+        
+        $this->view('errors/admin-detail', $data);
     }
 
     /**

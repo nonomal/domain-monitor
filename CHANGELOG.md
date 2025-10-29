@@ -5,6 +5,17 @@ All notable changes to Domain Monitor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - In Development
+
+### Added
+- **Twig Templating Engine** - Modern template system with automatic XSS protection
+- Custom Twig functions and filters for common operations
+
+### Changed
+- All PHP views migrated to Twig templates (45+ files)
+- Page metadata moved from views to controllers
+- Flash messages now use one-time consumption
+
 ## [1.1.0] - 2025-10-09
 
 ### Added
@@ -297,6 +308,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [x] Webhook support for third-party integrations (completed - v1.1.0)
 - [x] Bulk operations (completed - v1.1.0)
 - [x] Multi-user support with basic roles (completed - v1.1.0)
+- [x] Modern templating engine (Twig) (completed - v1.2.0)
 - [ ] Multi-user support with advanced permissions and roles
 - [ ] API for external integrations
 - [ ] Custom notification templates
@@ -320,6 +332,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Version History
+
+### 1.2.0 (In Development)
+- **Twig Templating Engine** - Modern template system with automatic XSS protection
+- Custom Twig functions and filters for common operations
 
 ### 1.1.0 (2025-10-09)
 - **User Notifications System** - In-app notification center with 7 notification types, filtering, pagination

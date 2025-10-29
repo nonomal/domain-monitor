@@ -61,6 +61,9 @@ class NotificationController extends Controller
         
         $this->view('notifications/index', [
             'title' => 'Notifications',
+            'pageTitle' => 'Notifications',
+            'pageDescription' => 'View and manage your notifications',
+            'pageIcon' => 'fas fa-bell',
             'notifications' => $notifications,
             'unreadCount' => $unreadCount,
             'filters' => $filters,

@@ -71,7 +71,10 @@ class TwoFactorController extends Controller
             'user' => $user,
             'secret' => $secret,
             'qrCodeUrl' => $qrCodeUrl,
-            'title' => 'Setup Two-Factor Authentication'
+            'title' => 'Setup Two-Factor Authentication',
+            'pageTitle' => 'Setup 2FA',
+            'pageDescription' => 'Configure two-factor authentication for your account',
+            'pageIcon' => 'fas fa-shield-alt'
         ]);
     }
 
@@ -179,7 +182,10 @@ class TwoFactorController extends Controller
         $this->view('2fa/backup-codes', [
             'user' => $user,
             'backupCodes' => $backupCodes,
-            'title' => 'Backup Codes'
+            'title' => 'Backup Codes',
+            'pageTitle' => '2FA Backup Codes',
+            'pageDescription' => 'Save these backup codes in a secure location',
+            'pageIcon' => 'fas fa-key'
         ]);
     }
 
@@ -205,7 +211,10 @@ class TwoFactorController extends Controller
 
         $this->view('2fa/verify', [
             'user' => $user,
-            'title' => 'Two-Factor Authentication'
+            'title' => 'Two-Factor Authentication',
+            'pageTitle' => 'Two-Factor Verification',
+            'pageDescription' => 'Enter your authentication code to continue',
+            'pageIcon' => 'fas fa-shield-alt'
         ]);
     }
 

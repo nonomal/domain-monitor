@@ -67,11 +67,21 @@ class ProfileController extends Controller
         // Format sessions for display (adds deviceIcon, browserInfo, timeAgo, sessionAge)
         $formattedSessions = \App\Helpers\SessionHelper::formatForDisplay($sessions);
 
+        // Get avatar data
+        $user['avatar'] = AvatarHelper::getAvatar($user, 80);
+        
+        // Get 2FA status and policy
+        $twoFactorService = new \App\Services\TwoFactorService();
+        $user['twoFactorStatus'] = $this->userModel->getTwoFactorStatus($user['id']);
+        $user['twoFactorPolicy'] = $twoFactorService->getTwoFactorPolicy();
+
         $this->view('profile/index', [
             'user' => $user,
             'sessions' => $formattedSessions,
-            'userModel' => $this->userModel,
-            'title' => 'My Profile'
+            'title' => 'My Profile',
+            'pageTitle' => 'My Profile',
+            'pageDescription' => 'Manage your account settings and preferences',
+            'pageIcon' => 'fas fa-user-circle'
         ]);
     }
 

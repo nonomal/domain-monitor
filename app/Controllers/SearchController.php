@@ -72,6 +72,10 @@ class SearchController extends Controller
             'whoisData' => $whoisData,
             'whoisError' => $whoisError,
             'isDomainLike' => $isDomainLike,
+            'title' => 'Search Results',
+            'pageTitle' => 'Search Results',
+            'pageDescription' => !empty($query) ? 'Results for: ' . htmlspecialchars($query) : 'Enter a search query',
+            'pageIcon' => 'fas fa-search',
             'pagination' => [
                 'current_page' => $page,
                 'per_page' => $perPage,
@@ -79,8 +83,7 @@ class SearchController extends Controller
                 'total_pages' => $totalPages,
                 'showing_from' => $totalResults > 0 ? $offset + 1 : 0,
                 'showing_to' => min($offset + $perPage, $totalResults)
-            ],
-            'title' => 'Search Results'
+            ]
         ]);
     }
 
