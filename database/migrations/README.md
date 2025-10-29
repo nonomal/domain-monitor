@@ -1,12 +1,18 @@
 # Database Migrations
 
-## Fresh Installation (v1.1.0+)
+## Fresh Installation (v1.2.0+)
 
-For new installations, use the consolidated schema:
+For new installations, use the latest consolidated schema:
 
-- **`000_initial_schema_v1.1.0.sql`** - Complete database schema for v1.1.0
+- **`000_initial_schema_v1.2.0.sql`** - Complete database schema for v1.2.0
 
-**Install via:** Web installer at `/install`
+**Install via:** Web installer at `/install` (automatically uses latest schema)
+
+## Incremental Migrations (v1.1.0 → v1.2.0)
+
+If upgrading from v1.1.0, these incremental migrations will be applied:
+
+- `022_update_app_version_to_1.2.0.sql` - Bump app version to v1.2.0
 
 ## Incremental Migrations (v1.0.0 → v1.1.0)
 
@@ -28,6 +34,11 @@ If upgrading from v1.0.0, these incremental migrations will be applied:
 - `014_add_captcha_settings.sql` - CAPTCHA settings (v2, v3, Turnstile)
 - `015_create_error_logs_table.sql` - Error logging and debugging system
 - `016_add_tags_to_domains.sql` - Domain tags for organization
+- `017_add_two_factor_authentication.sql` - Two-factor authentication
+- `018_add_user_isolation.sql` - User isolation mode
+- `019_add_webhook_channel_type.sql` - Webhook channel support
+- `020_create_tags_system.sql` - Tagging system
+- `021_add_avatar_field.sql` - User avatar support
 
 **Upgrade via:** Web updater at `/install/update`
 

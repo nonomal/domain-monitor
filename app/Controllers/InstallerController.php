@@ -34,26 +34,6 @@ class InstallerController extends Controller
      */
     private function getPendingMigrations(bool $createMigrationsTable = true): array
     {
-        // For fresh installs - use consolidated schema
-        $freshInstallMigration = ['000_initial_schema_v1.1.0.sql'];
-        
-        // For incremental updates from v1.0.0
-        $incrementalMigrations = [
-            '009_add_authentication_features.sql',
-            '010_add_app_version_setting.sql',
-            '011_create_sessions_table.sql',
-            '012_link_remember_tokens_to_sessions.sql',
-            '013_create_user_notifications_table.sql',
-            '014_add_captcha_settings.sql',
-            '015_create_error_logs_table.sql',
-            '016_add_tags_to_domains.sql',
-            '017_add_two_factor_authentication.sql',
-            '018_add_user_isolation.sql',
-            '019_add_webhook_channel_type.sql',
-            '020_create_tags_system.sql',
-            '021_add_avatar_field.sql',
-        ];
-        
         try {
             $pdo = \Core\Database::getConnection();
             
@@ -97,9 +77,9 @@ class InstallerController extends Controller
             // Core tables are: users, domains, settings, notification_groups
             // Note: sessions, password_reset_tokens, etc. might exist from app startup but don't indicate real installation
             if (!$hasUsers && !$hasDomains && !$hasSettings && !$hasNotificationGroups) {
-                $this->logger->info("Fresh install detected - no core tables exist, returning fresh install migration only");
-                // Return immediately WITHOUT creating migrations table to avoid partial table creation
-                return $freshInstallMigration;
+                $this->logger->info("Fresh install detected - no core tables exist, using latest consolidated schema");
+                $latestSchema = $this->getLatestConsolidatedSchema();
+                return $latestSchema ? [$latestSchema] : ['000_initial_schema_v1.1.0.sql'];
             }
             
             $this->logger->debug("Not fresh install", [
@@ -117,12 +97,12 @@ class InstallerController extends Controller
                     $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
                     $adminCount = $stmt->fetchColumn();
                     if ($adminCount == 0) {
-                        // No admin users, treat as fresh install
-                        return $freshInstallMigration;
+                        $latestSchema = $this->getLatestConsolidatedSchema();
+                        return $latestSchema ? [$latestSchema] : ['000_initial_schema_v1.1.0.sql'];
                     }
                 } catch (\Exception $e) {
-                    // Error checking users, treat as fresh install
-                    return $freshInstallMigration;
+                    $latestSchema = $this->getLatestConsolidatedSchema();
+                    return $latestSchema ? [$latestSchema] : ['000_initial_schema_v1.1.0.sql'];
                 }
             }
             
@@ -150,47 +130,15 @@ class InstallerController extends Controller
                 }
             }
             
-            // If no migrations executed but has data - check if it's a complete v1.0.0 install or broken fresh install
+            // If no migrations executed but has data - treat as existing install, compute pending dynamically
             if (empty($executed) && ($hasUsers || $hasDomains)) {
                 // If critical tables are missing, treat as broken fresh install and use consolidated schema
                 if (!$hasSettings || !$hasNotificationGroups) {
-                    // Clear the migrations table and use fresh install
                     $pdo->exec("DELETE FROM migrations");
-                    return $freshInstallMigration;
+                    $latestSchema = $this->getLatestConsolidatedSchema();
+                    return $latestSchema ? [$latestSchema] : ['000_initial_schema_v1.1.0.sql'];
                 }
-                // Mark 001-008 as executed (v1.0.0 migrations)
-                $v1Migrations = [
-                    '001_create_tables.sql',
-                    '002_create_users_table.sql',
-                    '003_add_whois_fields.sql',
-                    '004_create_tld_registry_table.sql',
-                    '005_update_tld_import_logs.sql',
-                    '006_add_complete_workflow_import_type.sql',
-                    '007_add_app_and_email_settings.sql',
-                    '008_add_notes_to_domains.sql'
-                ];
-                
-                $stmt = $pdo->prepare("INSERT IGNORE INTO migrations (migration) VALUES (?)");
-                foreach ($v1Migrations as $migration) {
-                    $stmt->execute([$migration]);
-                }
-                
-                // Return only new migrations for v1.1.0
-                return [
-                    '009_add_authentication_features.sql', 
-                    '010_add_app_version_setting.sql', 
-                    '011_create_sessions_table.sql',
-                    '012_link_remember_tokens_to_sessions.sql',
-                    '013_create_user_notifications_table.sql',
-                    '014_add_captcha_settings.sql',
-                    '015_create_error_logs_table.sql',
-                    '016_add_tags_to_domains.sql',
-                    '017_add_two_factor_authentication.sql',
-                    '018_add_user_isolation.sql',
-                    '019_add_webhook_channel_type.sql',
-                    '020_create_tags_system.sql',
-                    '021_add_avatar_field.sql'
-                ];
+                // Otherwise, fall through to dynamic pending calculation below
             }
             
             // If no migrations executed and no data - fresh install (use consolidated)
@@ -198,8 +146,12 @@ class InstallerController extends Controller
                 return $freshInstallMigration;
             }
             
-            // If has executed migrations - check for pending incremental ones
-            $pending = array_diff($incrementalMigrations, $executed);
+            // If has executed migrations - check for pending incremental ones dynamically
+            $allMigrations = $this->listIncrementalMigrations();
+            // Preserve order
+            $pending = array_values(array_filter($allMigrations, function($m) use ($executed) {
+                return !in_array($m, $executed);
+            }));
             
             // If we have executed migrations but critical tables are missing, something went wrong
             // Clear migrations and use fresh install
@@ -211,9 +163,54 @@ class InstallerController extends Controller
             return $pending;
             
         } catch (\Exception $e) {
-            // If critical error - assume fresh install
-            return $freshInstallMigration;
+            // If critical error - assume fresh install using latest consolidated schema
+            $latestSchema = $this->getLatestConsolidatedSchema();
+            return $latestSchema ? [$latestSchema] : ['000_initial_schema_v1.1.0.sql'];
         }
+    }
+
+    /**
+     * List incremental migration files (excludes consolidated schemas)
+     */
+    private function listIncrementalMigrations(): array
+    {
+        $dir = __DIR__ . '/../../database/migrations';
+        $files = @scandir($dir) ?: [];
+        $migrations = array_values(array_filter($files, function($f) {
+            return preg_match('/^\d{3}_.+\.sql$/', $f) && strpos($f, '000_initial_schema_') !== 0;
+        }));
+        sort($migrations, SORT_STRING);
+        return $migrations;
+    }
+
+    /**
+     * Get the latest consolidated schema filename by version in name
+     */
+    private function getLatestConsolidatedSchema(): ?string
+    {
+        $dir = __DIR__ . '/../../database/migrations';
+        $files = @scandir($dir) ?: [];
+        $schemas = array_values(array_filter($files, function($f) {
+            return strpos($f, '000_initial_schema_') === 0 && substr($f, -4) === '.sql';
+        }));
+        if (empty($schemas)) {
+            return null;
+        }
+        // Pick max by semantic version in filename
+        usort($schemas, function($a, $b) {
+            $va = $this->extractVersionFromSchema($a);
+            $vb = $this->extractVersionFromSchema($b);
+            return version_compare($vb, $va);
+        });
+        return $schemas[0] ?? null;
+    }
+
+    private function extractVersionFromSchema(string $filename): string
+    {
+        if (preg_match('/000_initial_schema_v([0-9]+\.[0-9]+\.[0-9]+)\.sql/', $filename, $m)) {
+            return $m[1];
+        }
+        return '0.0.0';
     }
     
     /**
@@ -305,12 +302,19 @@ class InstallerController extends Controller
             // Debug: Log what migrations are being executed
             $this->logger->debug("Executing migrations: " . implode(', ', $migrations));
             
+            // Set session data for progress tracking
+            $_SESSION['install_progress'] = [
+                'total_steps' => count($migrations) + 3, // migrations + admin + encryption + complete
+                'current_step' => 0,
+                'status' => 'running'
+            ];
+            
             // For fresh installs, ONLY execute the consolidated schema
             // It already includes the migrations table and marks itself as executed
-            if (count($migrations) === 1 && $migrations[0] === '000_initial_schema_v1.1.0.sql') {
+            if (count($migrations) === 1 && strpos($migrations[0], '000_initial_schema_') === 0) {
                 $this->logger->debug("Fresh install - executing consolidated schema only");
                 
-                $file = __DIR__ . '/../../database/migrations/000_initial_schema_v1.1.0.sql';
+                $file = __DIR__ . '/../../database/migrations/' . $migrations[0];
                 $sql = file_get_contents($file);
                 
                 // Replace admin credentials
@@ -351,29 +355,7 @@ class InstallerController extends Controller
                 }
                 
                 // Mark all individual migrations as executed since the consolidated schema includes them all
-                $allIndividualMigrations = [
-                    '001_create_tables.sql',
-                    '002_create_users_table.sql',
-                    '003_add_whois_fields.sql',
-                    '004_create_tld_registry_table.sql',
-                    '005_update_tld_import_logs.sql',
-                    '006_add_complete_workflow_import_type.sql',
-                    '007_add_app_and_email_settings.sql',
-                    '008_add_notes_to_domains.sql',
-                    '009_add_authentication_features.sql',
-                    '010_add_app_version_setting.sql',
-                    '011_create_sessions_table.sql',
-                    '012_link_remember_tokens_to_sessions.sql',
-                    '013_create_user_notifications_table.sql',
-                    '014_add_captcha_settings.sql',
-                    '015_create_error_logs_table.sql',
-                    '016_add_tags_to_domains.sql',
-                    '017_add_two_factor_authentication.sql',
-                    '018_add_user_isolation.sql',
-                    '019_add_webhook_channel_type.sql',
-                    '020_create_tags_system.sql',
-                    '021_add_avatar_field.sql',
-                ];
+                $allIndividualMigrations = $this->listIncrementalMigrations();
                 
                 $stmt = $pdo->prepare("INSERT INTO migrations (migration) VALUES (?) ON DUPLICATE KEY UPDATE migration=migration");
                 foreach ($allIndividualMigrations as $migration) {
@@ -474,8 +456,6 @@ class InstallerController extends Controller
             
             // Redirect to complete page
             $_SESSION['install_complete'] = true;
-            $_SESSION['admin_username'] = $adminUsername;
-            $_SESSION['admin_password'] = $adminPassword;
             
             $this->logger->info("Installation completed successfully");
             $this->redirect('/install/complete');
@@ -587,19 +567,10 @@ class InstallerController extends Controller
                 
                 try {
                     $settingModel = new \App\Models\Setting();
-                    $currentVersion = $settingModel->getAppVersion();
-                    
-                    // Determine from/to versions based on migrations
-                    $fromVersion = '1.0.0';
-                    $toVersion = '1.1.0';
-                    
-                    // Detect version based on which migrations were run
-                    if (in_array('011_create_sessions_table.sql', $executed) || 
-                        in_array('012_link_remember_tokens_to_sessions.sql', $executed) ||
-                        in_array('013_create_user_notifications_table.sql', $executed)) {
-                        $toVersion = '1.1.0';
-                    }
-                    
+                    // Read version before and after migrations
+                    $fromVersion = $settingModel->getAppVersion();
+                    // Force reload by reading again (if cached elsewhere, still safe)
+                    $toVersion = $settingModel->getAppVersion();
                     $notificationService = new \App\Services\NotificationService();
                     $notificationService->notifyAdminsUpgrade($fromVersion, $toVersion, count($executed));
                 } catch (\Exception $e) {
@@ -633,16 +604,10 @@ class InstallerController extends Controller
             return;
         }
         
-        $adminUsername = $_SESSION['admin_username'] ?? 'admin';
-        $adminPassword = $_SESSION['admin_password'] ?? null;
-        unset($_SESSION['admin_username']);
-        unset($_SESSION['admin_password']);
         unset($_SESSION['install_complete']);
         
         $this->view('installer/complete', [
-            'title' => 'Installation Complete',
-            'adminUsername' => $adminUsername,
-            'adminPassword' => $adminPassword
+            'title' => 'Installation Complete'
         ]);
     }
     

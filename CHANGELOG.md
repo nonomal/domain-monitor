@@ -291,9 +291,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [x] TLD Registry System (completed - v1.0.0)
 - [x] Remote session termination (completed - v1.1.0)
 - [x] In-app user notifications (completed - v1.1.0)
+- [x] Domain grouping/tagging (completed - v1.1.0)
+- [x] 2FA for login (completed - v1.1.0)
+- [x] Docker support (completed - v1.1.0)
+- [x] Webhook support for third-party integrations (completed - v1.1.0)
+- [x] Bulk operations (completed - v1.1.0)
+- [x] Multi-user support with basic roles (completed - v1.1.0)
 - [ ] Multi-user support with advanced permissions and roles
 - [ ] API for external integrations
-- [ ] Domain grouping/tagging
 - [ ] Custom notification templates
 - [ ] SMS notifications (Twilio)
 - [ ] WhatsApp notifications
@@ -303,16 +308,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ ] DNS record monitoring
 - [ ] SSL certificate monitoring
 - [ ] Downtime monitoring
-- [ ] 2FA for login
 - [ ] Mobile app
-- [ ] Docker support
 - [ ] Redis caching
 - [ ] Rate limiting
-- [ ] Webhook support for third-party integrations
 - [ ] Dark mode UI toggle
 - [ ] Multi-language support
 - [ ] Advanced filtering and search
-- [ ] Bulk operations
 - [ ] Scheduled reports
 - [ ] Integration with domain registrars
 

@@ -33,26 +33,13 @@
                 <p class="text-gray-600">Domain Monitor is ready to use</p>
             </div>
 
-            <!-- Important Notice -->
-            <div class="bg-amber-50 border-2 border-amber-400 rounded-lg p-6 mb-6">
+            <!-- Success Message -->
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
                 <div class="flex items-start">
-                    <i class="fas fa-exclamation-triangle text-amber-600 text-2xl mr-4"></i>
+                    <i class="fas fa-shield-alt text-green-600 text-2xl mr-4"></i>
                     <div class="flex-1">
-                        <h3 class="text-lg font-semibold text-amber-900 mb-2">Save Your Credentials!</h3>
-                        <p class="text-sm text-amber-800 mb-4">This password will not be shown again. Save it to a secure password manager.</p>
-                        
-                        <div class="bg-white rounded-lg border border-amber-300 p-4">
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm font-medium text-gray-600">Username:</span>
-                                    <span class="text-sm font-mono font-bold text-gray-900 select-all"><?= htmlspecialchars($adminUsername ?? 'admin') ?></span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm font-medium text-gray-600">Password:</span>
-                                    <span class="text-sm font-mono font-bold text-gray-900 select-all"><?= htmlspecialchars($adminPassword ?? '********') ?></span>
-                                </div>
-                            </div>
-                        </div>
+                        <h3 class="text-lg font-semibold text-green-900 mb-2">Installation Successful!</h3>
+                        <p class="text-sm text-green-800">Your Domain Monitor system is now ready to use. You can log in with the admin credentials you provided during installation.</p>
                     </div>
                 </div>
             </div>

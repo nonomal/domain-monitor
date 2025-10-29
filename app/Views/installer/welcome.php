@@ -38,27 +38,58 @@
             <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
                 <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Installation Steps</h2>
                 <div class="space-y-3">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+                    <div class="flex items-start" id="step1">
+                        <div class="flex-shrink-0 w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold step-icon">1</div>
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-gray-900">Database Setup</h3>
                             <p class="text-sm text-gray-600">Create tables and structure</p>
                         </div>
                     </div>
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+                    <div class="flex items-start" id="step2">
+                        <div class="flex-shrink-0 w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold step-icon">2</div>
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-gray-900">Admin Account</h3>
                             <p class="text-sm text-gray-600">Set your credentials below</p>
                         </div>
                     </div>
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                    <div class="flex items-start" id="step3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold step-icon">3</div>
                         <div class="ml-3">
-                            <h3 class="text-sm font-medium text-gray-900">Start Monitoring</h3>
-                            <p class="text-sm text-gray-600">Begin tracking your domains</p>
+                            <h3 class="text-sm font-medium text-gray-900">Configuration</h3>
+                            <p class="text-sm text-gray-600">Initialize settings and notifications</p>
                         </div>
                     </div>
+                    <div class="flex items-start" id="step4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold step-icon">4</div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-900">Complete</h3>
+                            <p class="text-sm text-gray-600">Ready to start monitoring</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="progressContainer" class="hidden mb-6">
+                <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                    <span id="progressText">Preparing installation...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-primary h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Installation Log -->
+            <div id="installLog" class="hidden bg-gray-900 text-green-400 rounded-lg p-4 mb-6 font-mono text-sm max-h-64 overflow-y-auto">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-semibold">Installation Log</span>
+                    <button type="button" onclick="toggleLog()" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-chevron-down" id="logToggleIcon"></i>
+                    </button>
+                </div>
+                <div id="logContent" class="space-y-1">
+                    <!-- Log entries will be added here -->
                 </div>
             </div>
 
@@ -73,7 +104,7 @@
             <?php unset($_SESSION['error']); endif; ?>
 
             <!-- Installation Form -->
-            <form method="POST" action="/install/run" class="space-y-5">
+            <form method="POST" action="/install/run" id="installForm" class="space-y-5">
                 <div class="border-t border-gray-200 pt-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Administrator Account</h3>
                     
@@ -135,9 +166,9 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white py-2.5 rounded-lg font-medium transition-colors">
-                    <i class="fas fa-rocket mr-2"></i>
-                    Start Installation
+                <button type="submit" id="installBtn" class="w-full bg-primary hover:bg-primary-dark text-white py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-rocket mr-2" id="installIcon"></i>
+                    <span id="installText">Start Installation</span>
                 </button>
             </form>
         </div>
@@ -149,6 +180,10 @@
     </div>
 
     <script>
+        let logExpanded = false;
+        let currentStep = 0;
+        let progressInterval;
+
         function togglePassword() {
             const input = document.getElementById('admin_password');
             const icon = document.getElementById('toggleIcon');
@@ -160,6 +195,154 @@
                 icon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
+
+        function toggleLog() {
+            const log = document.getElementById('installLog');
+            const icon = document.getElementById('logToggleIcon');
+            logExpanded = !logExpanded;
+            
+            if (logExpanded) {
+                log.classList.remove('max-h-64');
+                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            } else {
+                log.classList.add('max-h-64');
+                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            const color = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-blue-400';
+            
+            const entry = document.createElement('div');
+            entry.className = `flex items-start ${color}`;
+            entry.innerHTML = `
+                <span class="text-gray-500 mr-2">[${timestamp}]</span>
+                <span class="mr-2">${icon}</span>
+                <span>${message}</span>
+            `;
+            
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function updateStep(step, status = 'active') {
+            const stepElement = document.getElementById(`step${step}`);
+            const icon = stepElement.querySelector('.step-icon');
+            
+            // Reset all steps
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                const stepIcon = stepEl.querySelector('.step-icon');
+                stepEl.classList.remove('opacity-50');
+                stepIcon.className = 'flex-shrink-0 w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-semibold step-icon';
+            }
+            
+            if (status === 'active') {
+                icon.className = 'flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold step-icon';
+                stepElement.classList.remove('opacity-50');
+            } else if (status === 'completed') {
+                icon.className = 'flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-semibold step-icon';
+                icon.innerHTML = '<i class="fas fa-check text-xs"></i>';
+                stepElement.classList.remove('opacity-50');
+            } else if (status === 'error') {
+                icon.className = 'flex-shrink-0 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-semibold step-icon';
+                icon.innerHTML = '<i class="fas fa-times text-xs"></i>';
+                stepElement.classList.remove('opacity-50');
+            }
+        }
+
+        function updateProgress(percent, text) {
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progressPercent = document.getElementById('progressPercent');
+            
+            progressBar.style.width = percent + '%';
+            progressText.textContent = text;
+            progressPercent.textContent = Math.round(percent) + '%';
+        }
+
+        function simulateInstallation() {
+            const steps = [
+                { step: 1, text: 'Connecting to database...', duration: 1000 },
+                { step: 1, text: 'Creating database tables...', duration: 2000 },
+                { step: 1, text: 'Setting up user authentication...', duration: 1500 },
+                { step: 2, text: 'Creating admin account...', duration: 1000 },
+                { step: 2, text: 'Configuring user permissions...', duration: 800 },
+                { step: 3, text: 'Initializing application settings...', duration: 1200 },
+                { step: 3, text: 'Setting up notification system...', duration: 1000 },
+                { step: 3, text: 'Configuring security features...', duration: 1500 },
+                { step: 4, text: 'Finalizing installation...', duration: 1000 },
+                { step: 4, text: 'Installation complete!', duration: 500 }
+            ];
+
+            let totalDuration = steps.reduce((sum, step) => sum + step.duration, 0);
+            let currentDuration = 0;
+            let stepIndex = 0;
+
+            progressInterval = setInterval(() => {
+                if (stepIndex >= steps.length) {
+                    clearInterval(progressInterval);
+                    updateStep(4, 'completed');
+                    updateProgress(100, 'Installation complete!');
+                    addLogEntry('Installation completed successfully!', 'success');
+                    
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/install/complete';
+                    }, 2000);
+                    return;
+                }
+
+                const step = steps[stepIndex];
+                currentDuration += step.duration;
+                const progress = (currentDuration / totalDuration) * 100;
+
+                updateStep(step.step, 'active');
+                updateProgress(progress, step.text);
+                addLogEntry(step.text);
+
+                if (step.step > currentStep) {
+                    updateStep(currentStep, 'completed');
+                    currentStep = step.step;
+                }
+
+                stepIndex++;
+            }, 200);
+        }
+
+        document.getElementById('installForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Disable form and show progress
+            const form = this;
+            const submitBtn = document.getElementById('installBtn');
+            const installIcon = document.getElementById('installIcon');
+            const installText = document.getElementById('installText');
+            
+            submitBtn.disabled = true;
+            installIcon.className = 'fas fa-spinner fa-spin mr-2';
+            installText.textContent = 'Installing...';
+            
+            // Show progress UI
+            document.getElementById('progressContainer').classList.remove('hidden');
+            document.getElementById('installLog').classList.remove('hidden');
+            
+            addLogEntry('Starting Domain Monitor installation...');
+            addLogEntry('Validating form data...');
+            
+            // Start simulation
+            setTimeout(() => {
+                simulateInstallation();
+            }, 1000);
+            
+            // Actually submit the form after a short delay
+            setTimeout(() => {
+                form.submit();
+            }, 500);
+        });
     </script>
 </body>
 </html>

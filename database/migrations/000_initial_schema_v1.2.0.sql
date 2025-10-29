@@ -1,4 +1,4 @@
--- Domain Monitor v1.1.0 - Complete Initial Schema
+-- Domain Monitor v1.2.0 - Complete Initial Schema
 -- This consolidated migration includes all features for fresh installations
 
 -- =====================================================
@@ -362,7 +362,7 @@ INSERT INTO settings (setting_key, setting_value, `type`, `description`) VALUES
 ('app_name', 'Domain Monitor', 'string', 'Application name'),
 ('app_url', 'http://localhost:8000', 'string', 'Application URL'),
 ('app_timezone', 'UTC', 'string', 'Application timezone'),
-('app_version', '1.1.0', 'string', 'Application version number'),
+('app_version', '1.2.0', 'string', 'Application version number'),
 
 -- Email settings
 ('mail_host', 'smtp.mailtrap.io', 'string', 'SMTP server host'),
@@ -411,6 +411,6 @@ CREATE TABLE IF NOT EXISTS migrations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Mark this consolidated migration as executed
-INSERT INTO migrations (migration) VALUES ('000_initial_schema_v1.1.0.sql')
+INSERT INTO migrations (migration) VALUES ('000_initial_schema_v1.2.0.sql')
 ON DUPLICATE KEY UPDATE migration=migration;
 
