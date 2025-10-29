@@ -1,8 +1,8 @@
-{% extends 'layout/base.twig' %}
+{% extends 'layout/minimal-base.twig' %}
 
 {% set title = 'Debug Error - ' ~ error_type|default('Application Error') %}
 
-{% block content %}
+{% block head %}
 <style>
     .code-block {
         background-color: #1e1e1e;
@@ -14,6 +14,9 @@
         user-select: none;
     }
 </style>
+{% endblock %}
+
+{% block content %}
 
 <!-- Header -->
 <div class="mb-6">
