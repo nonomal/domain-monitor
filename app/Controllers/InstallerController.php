@@ -599,12 +599,11 @@ class InstallerController extends Controller
      */
     public function complete()
     {
-        if (!isset($_SESSION['install_complete'])) {
-            $this->redirect('/');
-            return;
+        // Render complete page even if the session flag is missing,
+        // to avoid accidental redirects to login
+        if (isset($_SESSION['install_complete'])) {
+            unset($_SESSION['install_complete']);
         }
-        
-        unset($_SESSION['install_complete']);
         
         $this->view('installer/complete', [
             'title' => 'Installation Complete'

@@ -35,7 +35,7 @@
             </div>
 
             <!-- Installation Steps -->
-            <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
+            <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6 hidden" id="stepsContainer">
                 <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Installation Steps</h2>
                 <div class="space-y-3">
                     <div class="flex items-start" id="step1">
@@ -67,6 +67,12 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="flex justify-end -mt-4 mb-4">
+                <button type="button" id="toggleDetailsBtn" class="text-xs text-gray-600 hover:text-gray-900 underline">
+                    Show installation details
+                </button>
             </div>
 
             <!-- Progress Bar -->
@@ -289,10 +295,7 @@
                     updateProgress(100, 'Installation complete!');
                     addLogEntry('Installation completed successfully!', 'success');
                     
-                    // Redirect after a short delay
-                    setTimeout(() => {
-                        window.location.href = '/install/complete';
-                    }, 2000);
+                    // Do not redirect here; the server response will handle navigation
                     return;
                 }
 
@@ -327,6 +330,7 @@
             installText.textContent = 'Installing...';
             
             // Show progress UI
+            document.getElementById('stepsContainer').classList.remove('hidden');
             document.getElementById('progressContainer').classList.remove('hidden');
             document.getElementById('installLog').classList.remove('hidden');
             
@@ -342,6 +346,19 @@
             setTimeout(() => {
                 form.submit();
             }, 500);
+        });
+
+        // Toggle installer details visibility
+        document.getElementById('toggleDetailsBtn').addEventListener('click', function() {
+            const steps = document.getElementById('stepsContainer');
+            const progress = document.getElementById('progressContainer');
+            const log = document.getElementById('installLog');
+            const isHidden = steps.classList.contains('hidden');
+            
+            [steps, progress, log].forEach(el => {
+                el.classList.toggle('hidden', !isHidden);
+            });
+            this.textContent = isHidden ? 'Hide installation details' : 'Show installation details';
         });
     </script>
 </body>
