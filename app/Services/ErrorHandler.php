@@ -271,10 +271,11 @@ class ErrorHandler
         $session_data = json_decode($errorData['session_data'], true);
         
         // Display debug page in development, clean 500 in production
-        if ($this->isDevelopment) {
-            // Render debug page via Twig in development
-            try {
-                $twig = \App\Services\TemplateService::get();
+        try {
+            $twig = \App\Services\TemplateService::get();
+            
+            if ($this->isDevelopment) {
+                // Render debug page via Twig in development
                 echo $twig->render('errors/debug.twig', [
                     'error_id' => $error_id,
                     'error_type' => $error_type,
@@ -293,22 +294,24 @@ class ErrorHandler
                     'request_data' => $request_data,
                     'session_data' => $session_data,
                 ]);
-            } catch (\Throwable $e) {
-                // Fallback to legacy debug page if Twig fails
-                require __DIR__ . '/../Views/errors/';
-            }
-        } else {
-            // Render 500 via Twig in production
-            try {
-                $twig = \App\Services\TemplateService::get();
+            } else {
+                // Render 500 via Twig in production
                 echo $twig->render('errors/500.twig', [
                     'title' => 'Internal Server Error',
                     'error_id' => $error_id,
                 ]);
-            } catch (\Throwable $e) {
-                // Fallback to legacy PHP view if Twig fails
-                require __DIR__ . '/../Views/errors/500.php';
             }
+        } catch (\Throwable $twigException) {
+            // Log Twig rendering failure
+            $this->logger->critical('Failed to render error page via Twig', [
+                'original_error_id' => $error_id,
+                'twig_error' => $twigException->getMessage(),
+                'twig_file' => $twigException->getFile(),
+                'twig_line' => $twigException->getLine()
+            ]);
+            
+            // Re-throw to let PHP handle it
+            throw $twigException;
         }
         
         exit;
