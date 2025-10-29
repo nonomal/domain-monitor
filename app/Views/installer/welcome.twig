@@ -122,27 +122,29 @@
 {% endblock %}
 
 {% block scripts %}
-        function togglePassword() {
-            const input = document.getElementById('admin_password');
-            const icon = document.getElementById('toggleIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
+<script>
+    function togglePassword() {
+        const input = document.getElementById('admin_password');
+        const icon = document.getElementById('toggleIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
         }
+    }
 
-        document.getElementById('installForm').addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('installBtn');
-            const installIcon = document.getElementById('installIcon');
-            const installText = document.getElementById('installText');
-            
-            submitBtn.disabled = true;
-            installIcon.className = 'fas fa-spinner fa-spin mr-2';
-            installText.textContent = 'Installing...';
-        });
+    document.getElementById('installForm').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('installBtn');
+        const installIcon = document.getElementById('installIcon');
+        const installText = document.getElementById('installText');
+        
+        submitBtn.disabled = true;
+        installIcon.className = 'fas fa-spinner fa-spin mr-2';
+        installText.textContent = 'Installing...';
+    });
+</script>
 {% endblock %}
 
 
