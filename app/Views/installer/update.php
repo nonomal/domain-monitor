@@ -75,29 +75,6 @@
             </div>
             <?php unset($_SESSION['error']); endif; ?>
 
-            <!-- Progress Bar -->
-            <div id="progressContainer" class="hidden mb-6">
-                <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
-                    <span id="progressText">Preparing update...</span>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="progressBar" class="bg-primary h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <!-- Update Log -->
-            <div id="updateLog" class="hidden bg-gray-900 text-green-400 rounded-lg p-4 mb-6 font-mono text-sm max-h-64 overflow-y-auto">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-white font-semibold">Update Log</span>
-                    <button type="button" onclick="toggleLog()" class="text-gray-400 hover:text-white">
-                        <i class="fas fa-chevron-down" id="logToggleIcon"></i>
-                    </button>
-                </div>
-                <div id="logContent" class="space-y-1">
-                    <!-- Log entries will be added here -->
-                </div>
-            </div>
 
             <!-- Actions -->
             <form method="POST" action="/install/update" id="updateForm" class="space-y-3">
@@ -118,94 +95,8 @@
     </div>
 
     <script>
-        let logExpanded = false;
-        let progressInterval;
-
-        function toggleLog() {
-            const log = document.getElementById('updateLog');
-            const icon = document.getElementById('logToggleIcon');
-            logExpanded = !logExpanded;
-            
-            if (logExpanded) {
-                log.classList.remove('max-h-64');
-                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
-            } else {
-                log.classList.add('max-h-64');
-                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
-            }
-        }
-
-        function addLogEntry(message, type = 'info') {
-            const logContent = document.getElementById('logContent');
-            const timestamp = new Date().toLocaleTimeString();
-            const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
-            const color = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-blue-400';
-            
-            const entry = document.createElement('div');
-            entry.className = `flex items-start ${color}`;
-            entry.innerHTML = `
-                <span class="text-gray-500 mr-2">[${timestamp}]</span>
-                <span class="mr-2">${icon}</span>
-                <span>${message}</span>
-            `;
-            
-            logContent.appendChild(entry);
-            logContent.scrollTop = logContent.scrollHeight;
-        }
-
-        function updateProgress(percent, text) {
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            const progressPercent = document.getElementById('progressPercent');
-            
-            progressBar.style.width = percent + '%';
-            progressText.textContent = text;
-            progressPercent.textContent = Math.round(percent) + '%';
-        }
-
-        function simulateUpdate() {
-            const steps = [
-                { text: 'Preparing database update...', duration: 1000 },
-                { text: 'Backing up current state...', duration: 1500 },
-                { text: 'Running database migrations...', duration: 2000 },
-                { text: 'Updating application settings...', duration: 1000 },
-                { text: 'Verifying installation...', duration: 1200 },
-                { text: 'Update complete!', duration: 500 }
-            ];
-
-            let totalDuration = steps.reduce((sum, step) => sum + step.duration, 0);
-            let currentDuration = 0;
-            let stepIndex = 0;
-
-            progressInterval = setInterval(() => {
-                if (stepIndex >= steps.length) {
-                    clearInterval(progressInterval);
-                    updateProgress(100, 'Update complete!');
-                    addLogEntry('Update completed successfully!', 'success');
-                    
-                    // Redirect after a short delay
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 2000);
-                    return;
-                }
-
-                const step = steps[stepIndex];
-                currentDuration += step.duration;
-                const progress = (currentDuration / totalDuration) * 100;
-
-                updateProgress(progress, step.text);
-                addLogEntry(step.text);
-
-                stepIndex++;
-            }, 200);
-        }
-
         document.getElementById('updateForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Disable form and show progress
-            const form = this;
+            // Disable form during submission
             const submitBtn = document.getElementById('updateBtn');
             const updateIcon = document.getElementById('updateIcon');
             const updateText = document.getElementById('updateText');
@@ -213,23 +104,6 @@
             submitBtn.disabled = true;
             updateIcon.className = 'fas fa-spinner fa-spin mr-2';
             updateText.textContent = 'Updating...';
-            
-            // Show progress UI
-            document.getElementById('progressContainer').classList.remove('hidden');
-            document.getElementById('updateLog').classList.remove('hidden');
-            
-            addLogEntry('Starting system update...');
-            addLogEntry('Validating migration files...');
-            
-            // Start simulation
-            setTimeout(() => {
-                simulateUpdate();
-            }, 1000);
-            
-            // Actually submit the form after a short delay
-            setTimeout(() => {
-                form.submit();
-            }, 500);
         });
     </script>
 </body>
