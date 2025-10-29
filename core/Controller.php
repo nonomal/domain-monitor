@@ -7,7 +7,12 @@ abstract class Controller
     protected function view(string $view, array $data = []): void
     {
         $twig = \App\Services\TemplateService::get();
-        echo $twig->render(str_replace('\\', '/', "$view.twig"), $data);
+        
+        // Merge global data with view-specific data
+        $globalData = \App\Services\TemplateService::getGlobalData();
+        $templateData = array_merge($globalData, $data);
+        
+        echo $twig->render(str_replace('\\', '/', "$view.twig"), $templateData);
     }
 
     protected function json($data, int $status = 200): void

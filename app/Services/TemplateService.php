@@ -77,6 +77,88 @@ class TemplateService
         self::$twig = $twig;
         return self::$twig;
     }
+
+    /**
+     * Get global template data that should be available in all templates
+     */
+    public static function getGlobalData(): array
+    {
+        $globalData = [];
+
+        try {
+            // Get current user ID
+            $userId = \Core\Auth::id();
+            
+            // Get notifications for top nav (if user is logged in)
+            if ($userId) {
+                $notificationData = \App\Helpers\LayoutHelper::getNotifications($userId);
+                $globalData['recentNotifications'] = $notificationData['items'];
+                $globalData['unreadNotifications'] = $notificationData['unread_count'];
+            } else {
+                $globalData['recentNotifications'] = [];
+                $globalData['unreadNotifications'] = 0;
+            }
+
+            // Get domain stats for sidebar
+            $globalData['domainStats'] = \App\Helpers\LayoutHelper::getDomainStats();
+
+            // Get application settings
+            $appSettings = \App\Helpers\LayoutHelper::getAppSettings();
+            $globalData['app_name'] = $appSettings['app_name'];
+            $globalData['app_timezone'] = $appSettings['app_timezone'];
+            $globalData['app_version'] = $appSettings['app_version'];
+
+            // Get current URI for navigation highlighting
+            $globalData['current_uri'] = $_SERVER['REQUEST_URI'] ?? '/';
+
+            // Get current user data (if logged in)
+            if ($userId) {
+                $userModel = new \App\Models\User();
+                $user = $userModel->find($userId);
+                if ($user) {
+                    $globalData['current_user'] = $user;
+                    $globalData['session'] = [
+                        'user_id' => $userId,
+                        'username' => $user['username'],
+                        'role' => $user['role'],
+                        'full_name' => $user['full_name'],
+                        'email' => $user['email']
+                    ];
+                    
+                    // Get user avatar
+                    $globalData['user_avatar'] = \App\Helpers\AvatarHelper::getAvatar($user);
+                }
+            }
+
+            // Get session data for flash messages
+            $globalData['session'] = array_merge($globalData['session'] ?? [], [
+                'error' => $_SESSION['error'] ?? null,
+                'success' => $_SESSION['success'] ?? null,
+                'warning' => $_SESSION['warning'] ?? null,
+                'info' => $_SESSION['info'] ?? null
+            ]);
+
+        } catch (\Exception $e) {
+            // Fallback defaults if database is not available
+            $globalData = array_merge($globalData, [
+                'app_name' => 'Domain Monitor',
+                'app_version' => '1.0.0',
+                'app_timezone' => 'UTC',
+                'domainStats' => ['total' => 0, 'expiring_soon' => 0, 'active' => 0],
+                'recentNotifications' => [],
+                'unreadNotifications' => 0,
+                'current_uri' => $_SERVER['REQUEST_URI'] ?? '/',
+                'session' => [
+                    'error' => $_SESSION['error'] ?? null,
+                    'success' => $_SESSION['success'] ?? null,
+                    'warning' => $_SESSION['warning'] ?? null,
+                    'info' => $_SESSION['info'] ?? null
+                ]
+            ]);
+        }
+
+        return $globalData;
+    }
 }
 
 

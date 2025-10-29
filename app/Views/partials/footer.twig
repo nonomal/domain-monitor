@@ -1,6 +1,9 @@
 {# Reusable Footer Component #}
-<div class="text-center mt-6">
+<div class="text-center {% if mt is not defined %}mt-6{% endif %}">
     <p class="text-gray-500 text-xs">
         © {{ "now"|date("Y") }} <a href="https://github.com/Hosteroid/domain-monitor" target="_blank" class="hover:text-blue-600 transition-colors duration-150" title="Visit Domain Monitor on GitHub">Domain Monitor</a>{% if showRights is defined and showRights %}. All rights reserved{% endif %}.
     </p>
+    {% if showVersion is defined and showVersion %}
+    <p class="text-xs text-gray-600 mt-0.5">v{{ app_version|default('1.0.0') }}</p>
+    {% endif %}
 </div>

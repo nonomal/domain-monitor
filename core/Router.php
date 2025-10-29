@@ -56,7 +56,16 @@ class Router
 
         if ($callback === null) {
             http_response_code(404);
-            require_once __DIR__ . '/../app/Views/errors/404.php';
+            // Render 404 via Twig
+            try {
+                $twig = \App\Services\TemplateService::get();
+                echo $twig->render('errors/404.twig', [
+                    'title' => 'Page Not Found'
+                ]);
+            } catch (\Throwable $e) {
+                // Fallback to legacy PHP view if Twig fails
+                require_once __DIR__ . '/../app/Views/errors/404.php';
+            }
             return;
         }
 

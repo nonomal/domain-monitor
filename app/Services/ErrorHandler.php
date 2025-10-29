@@ -272,9 +272,43 @@ class ErrorHandler
         
         // Display debug page in development, clean 500 in production
         if ($this->isDevelopment) {
-            require __DIR__ . '/../Views/errors/debug.php';
+            // Render debug page via Twig in development
+            try {
+                $twig = \App\Services\TemplateService::get();
+                echo $twig->render('errors/debug.twig', [
+                    'error_id' => $error_id,
+                    'error_type' => $error_type,
+                    'error_message' => $error_message,
+                    'error_file' => $error_file,
+                    'error_line' => $error_line,
+                    'stack_trace' => $stack_trace,
+                    'request_method' => $request_method,
+                    'request_uri' => $request_uri,
+                    'user_agent' => $user_agent,
+                    'ip_address' => $ip_address,
+                    'php_version' => $php_version,
+                    'memory_usage' => $memory_usage,
+                    'occurred_at' => $occurred_at,
+                    'user_info' => $user_info,
+                    'request_data' => $request_data,
+                    'session_data' => $session_data,
+                ]);
+            } catch (\Throwable $e) {
+                // Fallback to legacy debug page if Twig fails
+                require __DIR__ . '/../Views/errors/';
+            }
         } else {
-            require __DIR__ . '/../Views/errors/500.php';
+            // Render 500 via Twig in production
+            try {
+                $twig = \App\Services\TemplateService::get();
+                echo $twig->render('errors/500.twig', [
+                    'title' => 'Internal Server Error',
+                    'error_id' => $error_id,
+                ]);
+            } catch (\Throwable $e) {
+                // Fallback to legacy PHP view if Twig fails
+                require __DIR__ . '/../Views/errors/500.php';
+            }
         }
         
         exit;
