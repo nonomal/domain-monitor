@@ -289,6 +289,7 @@ class ErrorHandler
                     'ip_address' => $ip_address,
                     'php_version' => $php_version,
                     'memory_usage' => $memory_usage,
+                    'peak_memory' => memory_get_peak_usage(true),
                     'occurred_at' => $occurred_at,
                     'user_info' => $user_info,
                     'request_data' => $request_data,

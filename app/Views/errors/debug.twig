@@ -278,7 +278,7 @@
                     </div>
                     <div class="flex items-center justify-between py-2 border-b border-gray-100">
                         <span class="font-medium text-gray-600">Peak Memory</span>
-                        <span class="font-mono text-gray-900">{{ (constant('memory_get_peak_usage')(true) / 1024 / 1024)|round(2) }}MB</span>
+                        <span class="font-mono text-gray-900">{{ (peak_memory|default(0) / 1024 / 1024)|round(2) }}MB</span>
                     </div>
                     <div class="flex items-center justify-between py-2">
                         <span class="font-medium text-gray-600">Timestamp</span>
@@ -478,7 +478,7 @@ USER CONTEXT:
 SYSTEM INFORMATION:
 - PHP Version: ${phpVersion}
 - Memory Usage: {{ (memory_usage|default(0) / 1024 / 1024)|round(2) }}MB
-- Peak Memory: {{ (constant('memory_get_peak_usage')(true) / 1024 / 1024)|round(2) }}MB
+- Peak Memory: {{ (peak_memory|default(0) / 1024 / 1024)|round(2) }}MB
 
 STACK TRACE:
 ${stackTrace}
