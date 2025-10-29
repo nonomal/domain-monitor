@@ -6,14 +6,8 @@ abstract class Controller
 {
     protected function view(string $view, array $data = []): void
     {
-        extract($data);
-        $viewPath = __DIR__ . "/../app/Views/$view.php";
-
-        if (!file_exists($viewPath)) {
-            throw new \Exception("View not found: $view");
-        }
-
-        require_once $viewPath;
+        $twig = \App\Services\TemplateService::get();
+        echo $twig->render(str_replace('\\', '/', "$view.twig"), $data);
     }
 
     protected function json($data, int $status = 200): void
