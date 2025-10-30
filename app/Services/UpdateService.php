@@ -99,6 +99,15 @@ class UpdateService
         $pending = $this->checkPendingMigrations();
         $remoteSha = $this->fetchRemoteMainSha($githubToken);
         $deployedSha = $setting->getValue('deployed_commit_sha');
+        if (empty($deployedSha)) {
+            // Auto-detect from local git only (no env fallback)
+            $autoSha = $this->detectLocalGitSha();
+            if (!empty($autoSha)) {
+                $deployedSha = $autoSha;
+                // Cache it for next time
+                $setting->setValue('deployed_commit_sha', $deployedSha);
+            }
+        }
 
         // Persist snapshot
         $setting->setValue('update_last_check_at', date('Y-m-d H:i:s'));
@@ -121,13 +130,78 @@ class UpdateService
         $setting = new \App\Models\Setting();
         $target = $sha;
         if (!$target) {
-            // Fallback to last known remote sha
-            $target = $setting->getValue('update_last_remote_sha');
+            // Prefer local git detection, then last known remote
+            $target = $this->detectLocalGitSha();
+            if (!$target) {
+                $target = $setting->getValue('update_last_remote_sha');
+            }
         }
         if (!$target) {
             return false;
         }
         return $setting->setValue('deployed_commit_sha', $target);
+    }
+
+    /**
+     * Attempt to detect the current commit SHA from the local .git directory or git CLI.
+     */
+    private function detectLocalGitSha(): ?string
+    {
+        try {
+            $root = defined('PATH_ROOT') ? PATH_ROOT : (dirname(__DIR__, 2) . DIRECTORY_SEPARATOR);
+            $gitDir = rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '.git';
+
+            // If HEAD is a symbolic ref, resolve to ref file, else it already contains the SHA
+            $headFile = $gitDir . DIRECTORY_SEPARATOR . 'HEAD';
+            if (@is_file($headFile)) {
+                $head = @trim(@file_get_contents($headFile) ?: '');
+                if ($head !== '') {
+                    if (strpos($head, 'ref:') === 0) {
+                        $refPath = trim(substr($head, 4));
+                        $refFile = $gitDir . DIRECTORY_SEPARATOR . str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $refPath);
+                        if (@is_file($refFile)) {
+                            $sha = @trim(@file_get_contents($refFile) ?: '');
+                            if ($this->isValidSha($sha)) {
+                                return $sha;
+                            }
+                        }
+                        // Fallback to packed-refs
+                        $packed = $gitDir . DIRECTORY_SEPARATOR . 'packed-refs';
+                        if (@is_file($packed)) {
+                            $lines = @file($packed, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+                            foreach ($lines as $line) {
+                                if ($line[0] === '#') { continue; }
+                                if ($line[0] === '^') { continue; }
+                                $parts = preg_split('/\s+/', trim($line));
+                                if (count($parts) >= 2 && $parts[1] === $refPath && $this->isValidSha($parts[0])) {
+                                    return $parts[0];
+                                }
+                            }
+                        }
+                    } else {
+                        // HEAD contains SHA directly (detached HEAD)
+                        if ($this->isValidSha($head)) {
+                            return $head;
+                        }
+                    }
+                }
+            }
+
+            // Last resort: use git CLI if available
+            $output = @shell_exec('git rev-parse HEAD 2>&1');
+            $sha = $output ? trim($output) : '';
+            if ($this->isValidSha($sha)) {
+                return $sha;
+            }
+        } catch (\Throwable $e) {
+            // ignore and return null
+        }
+        return null;
+    }
+
+    private function isValidSha(?string $sha): bool
+    {
+        return is_string($sha) && preg_match('/^[0-9a-f]{40}$/i', $sha) === 1;
     }
 }
 
