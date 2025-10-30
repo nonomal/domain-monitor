@@ -98,15 +98,18 @@ class UpdateService
 
         $pending = $this->checkPendingMigrations();
         $remoteSha = $this->fetchRemoteMainSha($githubToken);
-        $deployedSha = $setting->getValue('deployed_commit_sha');
-        if (empty($deployedSha)) {
-            // Auto-detect from local git only (no env fallback)
-            $autoSha = $this->detectLocalGitSha();
-            if (!empty($autoSha)) {
-                $deployedSha = $autoSha;
-                // Cache it for next time
-                $setting->setValue('deployed_commit_sha', $deployedSha);
+        $storedDeployedSha = $setting->getValue('deployed_commit_sha');
+        // Try local git detection every time to avoid staleness
+        $autoSha = $this->detectLocalGitSha();
+        if (!empty($autoSha)) {
+            // Prefer auto-detected when available; refresh stored value if different
+            if ($storedDeployedSha !== $autoSha) {
+                $setting->setValue('deployed_commit_sha', $autoSha);
             }
+            $deployedSha = $autoSha;
+        } else {
+            // Fallback to stored value if auto-detection unavailable
+            $deployedSha = $storedDeployedSha;
         }
 
         // Persist snapshot
