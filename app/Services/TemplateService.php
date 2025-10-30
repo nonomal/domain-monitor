@@ -186,6 +186,19 @@ class TemplateService
                 }
             }
 
+            // Lightweight settings for global UI indicators (update badge)
+            try {
+                $settingModelLight = new \App\Models\Setting();
+                $globalData['settings'] = array_merge($globalData['settings'] ?? [], [
+                    'update_last_check_at' => $settingModelLight->getValue('update_last_check_at'),
+                    'update_last_remote_sha' => $settingModelLight->getValue('update_last_remote_sha'),
+                    'deployed_commit_sha' => $settingModelLight->getValue('deployed_commit_sha'),
+                    'update_has_pending_migrations' => $settingModelLight->getValue('update_has_pending_migrations', 0),
+                ]);
+            } catch (\Exception $e) {
+                // ignore
+            }
+
             // Get session data for flash messages and clear them (flash messages are one-time use)
             $flashMessages = [];
             

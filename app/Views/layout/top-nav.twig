@@ -54,6 +54,19 @@
                     <i class="fas fa-plus"></i>
                 </a>
                 
+                {% if is_admin() %}
+                {% set hasMigrations = settings.update_has_pending_migrations|default(0) %}
+                {% set remoteSha = settings.update_last_remote_sha|default('') %}
+                {% set deployedSha = settings.deployed_commit_sha|default('') %}
+                {% set codeUpdate = remoteSha and (remoteSha != deployedSha) %}
+                {% if hasMigrations or codeUpdate %}
+                <a href="{{ hasMigrations ? '/install/update' : '/settings#system' }}" title="Update Available" class="flex items-center justify-center w-9 h-9 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors duration-150">
+                    <i class="fas fa-arrow-up"></i>
+                    <span class="sr-only">Update available</span>
+                </a>
+                {% endif %}
+                {% endif %}
+                
                 <!-- Notifications -->
                 <div class="relative">
                     <button onclick="toggleNotifications()" title="Notifications" class="relative flex items-center justify-center w-9 h-9 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-150">

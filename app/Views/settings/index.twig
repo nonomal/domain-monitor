@@ -684,10 +684,63 @@
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 class="text-lg font-semibold text-gray-900">System Information</h3>
-            <p class="text-sm text-gray-600 mt-1">Cron job configuration and log file locations</p>
+            <p class="text-sm text-gray-600 mt-1">Update checks, cron job configuration, and log file locations</p>
         </div>
 
         <div class="p-6 space-y-6">
+            <!-- Update Check -->
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 mb-1">Updates</h4>
+                        <p class="text-xs text-gray-600">Check for pending database migrations and new commits on main.</p>
+                        <div class="mt-2 text-xs text-gray-700 space-y-1">
+                            <p>
+                                <span class="font-medium">Last check:</span>
+                                {{ settings.update_last_check_at|default('never') }}
+                            </p>
+                            <p>
+                                <span class="font-medium">Remote SHA:</span>
+                                {{ settings.update_last_remote_sha|default('unknown') }}
+                            </p>
+                            <p>
+                                <span class="font-medium">Deployed SHA:</span>
+                                {{ settings.deployed_commit_sha|default('not set') }}
+                            </p>
+                            <p>
+                                <span class="font-medium">Pending migrations:</span>
+                                {{ settings.update_has_pending_migrations is defined and settings.update_has_pending_migrations ? 'Yes' : 'No' }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <form method="POST" action="/settings/update-check">
+                            {{ csrf_field() }}
+                            <button type="submit" class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700">
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                Check for Updates
+                            </button>
+                        </form>
+                        <form method="POST" action="/settings/mark-deployed" class="flex items-center gap-1">
+                            {{ csrf_field() }}
+                            <input type="text" name="sha" placeholder="Commit SHA (optional)" class="px-2 py-1 border border-gray-300 rounded text-xs" style="width: 180px;">
+                            <button type="submit" class="inline-flex items-center px-3 py-2 bg-gray-700 text-white text-xs rounded-lg hover:bg-gray-800">
+                                <i class="fas fa-flag-checkered mr-2"></i>
+                                Mark Deployed
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% if settings.update_has_pending_migrations is defined and settings.update_has_pending_migrations %}
+                    <div class="mt-3">
+                        <a href="/install/update" class="inline-flex items-center px-3 py-2 bg-primary text-white text-xs rounded-lg hover:bg-primary-dark">
+                            <i class="fas fa-arrow-up mr-2"></i>
+                            Run Database Update
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
             <!-- Cron Command -->
             <div>
                 <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">

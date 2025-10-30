@@ -150,6 +150,100 @@ class SettingsController extends Controller
         }
     }
 
+    /**
+     * Admin-triggered update check (pending migrations + remote commit)
+     */
+    public function checkUpdates()
+    {
+        // Only allow POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/settings#system');
+            return;
+        }
+
+        // CSRF
+        $this->verifyCsrf('/settings#system');
+
+        try {
+            $service = new \App\Services\UpdateService();
+            $result = $service->performUpdateCheck();
+
+            // Prepare user-facing status
+            $messages = [];
+            if (!empty($result['pending_migrations'])) {
+                $count = (int)$result['pending_migrations'];
+                $messages[] = "Update available: {$count} migration" . ($count > 1 ? 's' : '') . ' pending.';
+            }
+
+            if (!empty($result['remote_sha'])) {
+                $remote = substr($result['remote_sha'], 0, 7);
+                $deployed = $result['deployed_sha'] ? substr($result['deployed_sha'], 0, 7) : 'not set';
+                if ($result['deployed_sha'] && $result['remote_sha'] === $result['deployed_sha']) {
+                    $messages[] = "Commit up to date (HEAD {$remote}).";
+                } else {
+                    $messages[] = "New commits on main. Remote {$remote}, deployed {$deployed}. Run git pull, then Update.";
+                }
+            } else {
+                $messages[] = 'Unable to reach GitHub to check latest commit.';
+            }
+
+            // Optional: notify admins about update availability
+            $hasMigrations = !empty($result['pending_migrations']);
+            $hasCodeUpdate = (!empty($result['remote_sha']) && (!empty($result['deployed_sha']) ? $result['remote_sha'] !== $result['deployed_sha'] : true));
+            if ($hasMigrations || $hasCodeUpdate) {
+                try {
+                    $userModel = new \App\Models\User();
+                    $admins = $userModel->getAllAdmins();
+                    $notificationModel = new \App\Models\Notification();
+                    foreach ($admins as $admin) {
+                        $title = $hasMigrations ? 'System Update Available' : 'New Commits Available';
+                        $message = $hasMigrations
+                            ? 'Database migrations are pending. Please run the update.'
+                            : 'New commits detected on main. Run git pull, then run update if needed.';
+                        $notificationModel->createNotification((int)$admin['id'], 'system_upgrade', $title, $message, null);
+                    }
+                } catch (\Exception $e) {
+                    // ignore notification failures
+                }
+            }
+
+            $_SESSION['success'] = implode(' ', $messages);
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Update check failed: ' . $e->getMessage();
+        }
+
+        $this->redirect('/settings#system');
+    }
+
+    /**
+     * Mark current commit as deployed (after git pull)
+     */
+    public function markDeployed()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/settings#system');
+            return;
+        }
+
+        $this->verifyCsrf('/settings#system');
+
+        $sha = trim($_POST['sha'] ?? '');
+        $sha = $sha !== '' ? $sha : null;
+
+        try {
+            $service = new \App\Services\UpdateService();
+            if ($service->markDeployed($sha)) {
+                $_SESSION['success'] = 'Deployed commit recorded successfully.';
+            } else {
+                $_SESSION['error'] = 'Failed to record deployed commit. Provide a SHA or set GIT_HEAD_SHA.';
+            }
+        } catch (\Exception $e) {
+            $_SESSION['error'] = 'Failed to record deployed commit: ' . $e->getMessage();
+        }
+
+        $this->redirect('/settings#system');
+    }
+
     public function testCron()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
