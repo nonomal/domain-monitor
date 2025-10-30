@@ -51,6 +51,9 @@
     {% if customStyles is defined %}
         <style>{{ customStyles|raw }}</style>
     {% endif %}
+
+    {# Page-level styles block (for per-view CSS) #}
+    {% block styles %}{% endblock %}
     
     <style>
         /* Sidebar full height */
