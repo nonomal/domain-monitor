@@ -121,10 +121,6 @@ class UpdateService
         $setting = new \App\Models\Setting();
         $target = $sha;
         if (!$target) {
-            // Optional: detect from env if provided by deployment tooling
-            $target = getenv('GIT_HEAD_SHA') ?: null;
-        }
-        if (!$target) {
             // Fallback to last known remote sha
             $target = $setting->getValue('update_last_remote_sha');
         }
