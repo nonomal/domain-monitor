@@ -4,7 +4,7 @@ namespace App\Services;
 
 class UpdateService
 {
-    private const GITHUB_BRANCH_API = 'https://api.github.com/repos/Hosteroid/domain-monitor/branches/main';
+    private const GITHUB_BRANCH_API = 'https://api.github.com/repos/Hosteroid/domain-monitor/branches/release/1.2.0';
 
     public function checkPendingMigrations(): array
     {
