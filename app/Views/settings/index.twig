@@ -721,14 +721,6 @@
                                 Check for Updates
                             </button>
                         </form>
-                        <form method="POST" action="/settings/mark-deployed" class="flex items-center gap-1">
-                            {{ csrf_field() }}
-                            <input type="text" name="sha" placeholder="Commit SHA (optional)" class="px-2 py-1 border border-gray-300 rounded text-xs" style="width: 180px;">
-                            <button type="submit" class="inline-flex items-center px-3 py-2 bg-gray-700 text-white text-xs rounded-lg hover:bg-gray-800">
-                                <i class="fas fa-flag-checkered mr-2"></i>
-                                Mark Deployed
-                            </button>
-                        </form>
                     </div>
                 </div>
                 {% if settings.update_has_pending_migrations is defined and settings.update_has_pending_migrations %}

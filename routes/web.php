@@ -129,7 +129,6 @@ $router->post('/settings/test-cron', [SettingsController::class, 'testCron']);
 $router->post('/settings/clear-logs', [SettingsController::class, 'clearLogs']);
 $router->post('/settings/toggle-isolation', [SettingsController::class, 'toggleIsolationMode']);
 $router->post('/settings/update-check', [SettingsController::class, 'checkUpdates']);
-$router->post('/settings/mark-deployed', [SettingsController::class, 'markDeployed']);
 
 // Profile
 $router->get('/profile', [ProfileController::class, 'index']);

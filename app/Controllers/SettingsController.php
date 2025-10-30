@@ -215,35 +215,6 @@ class SettingsController extends Controller
         $this->redirect('/settings#system');
     }
 
-    /**
-     * Mark current commit as deployed (after git pull)
-     */
-    public function markDeployed()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/settings#system');
-            return;
-        }
-
-        $this->verifyCsrf('/settings#system');
-
-        $sha = trim($_POST['sha'] ?? '');
-        $sha = $sha !== '' ? $sha : null;
-
-        try {
-            $service = new \App\Services\UpdateService();
-            if ($service->markDeployed($sha)) {
-                $_SESSION['success'] = 'Deployed commit recorded successfully.';
-            } else {
-                $_SESSION['error'] = 'Failed to record deployed commit. Provide a SHA or set GIT_HEAD_SHA.';
-            }
-        } catch (\Exception $e) {
-            $_SESSION['error'] = 'Failed to record deployed commit: ' . $e->getMessage();
-        }
-
-        $this->redirect('/settings#system');
-    }
-
     public function testCron()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
