@@ -84,23 +84,7 @@ class UpdateService
         $setting = new \App\Models\Setting();
         $githubToken = getenv('GITHUB_TOKEN') ?: null;
 
-        // Rate limit basic: 10 minutes (but bypass if critical values missing)
-        $lastRun = $setting->getValue('update_last_check_at');
-        if ($lastRun && (time() - strtotime($lastRun)) < 600) {
-            $cachedPending = (int)$setting->getValue('update_has_pending_migrations', 0);
-            $cachedRemote = $setting->getValue('update_last_remote_sha');
-            $cachedDeployed = $setting->getValue('deployed_commit_sha');
-            if (!empty($cachedRemote) && !empty($cachedDeployed)) {
-                // Return cached values
-                return [
-                    'rate_limited' => true,
-                    'pending_migrations' => $cachedPending,
-                    'remote_sha' => $cachedRemote,
-                    'deployed_sha' => $cachedDeployed,
-                ];
-            }
-            // If either SHA is missing, proceed to a fresh check
-        }
+        // Always perform a fresh check (no time-based rate limiting)
 
         $pending = $this->checkPendingMigrations();
         $remoteSha = $this->fetchRemoteMainSha($githubToken);
